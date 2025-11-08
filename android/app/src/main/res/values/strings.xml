@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="privacy_policy_placeholder">This is a placeholder privacy policy for development builds of chatmd_v1.\n\nReplace this screen with your actual privacy policy before shipping. For now, you can read the terms at https://example.com/privacy .</string>
+    <string name="privacy_policy_close">Close</string>
+</resources>
