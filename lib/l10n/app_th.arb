@@ -1,0 +1,10 @@
+﻿{
+  "@@locale": "th",
+  "app_name": "ChatMD",
+  "login_title": "ยินดีต้อนรับกลับ",
+  "register_title": "สร้างบัญชี",
+  "home_title": "หน้าหลัก",
+  "feed_title": "ฟีด",
+  "consult_title": "ปรึกษาแพทย์",
+  "settings_title": "ตั้งค่า"
+}

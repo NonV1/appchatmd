@@ -1,0 +1,386 @@
+วิสัยทัศน์ของแอป
+
+ChatMD คือแอปผู้ช่วยสุขภาพส่วนบุคคลที่ “อ่านค่าอุปกรณ์สวมใส่, วิเคราะห์ตามกติกา (rules) เฉพาะบุคคล, เตือนอย่างเหมาะสม, และให้ความรู้/คำแนะนำ” โดยคงแนว Minimal, Premium, Glass (glassmorphism) + Motion ที่นุ่มและเบาเครื่อง รองรับมือถือรุ่นเก่าได้ด้วยโหมดลดเอฟเฟกต์
+
+Workflows แบบ End-to-End
+0) Pre-launch checks (หน้าแรกก่อนเข้าระบบ)
+ตรวจเน็ต/เซิร์ฟเวอร์
+ถ้า ไม่มีอินเทอร์เน็ต → แสดงแบนเนอร์ “ไม่มีการเชื่อมต่อ” (กดรีลอง/ตั้งค่าเน็ตได้)
+ถ้า เรียก API ไม่ได้ → แสดง “เซิร์ฟเวอร์ขัดข้อง” (backoff + ปุ่มลองใหม่)
+เลือกภาษา (ไทย/อังกฤษ)
+ปุ่มสลับภาษามุมบน (ค่าจำไว้ใน prefs)
+เช็ค token
+มี token → ไปหน้า Home (shell)
+ไม่มี token → ไปหน้า Login/Register
+1) Authentication
+
+Login (อีเมล/รหัสผ่าน) + ปุ่ม social mock (Apple/Google/Facebook) เรียงด้านล่างฟอร์ม
+Register (ชื่อ, อีเมล, รหัสผ่าน + ยืนยันรหัส)
+เงื่อนไขอินพุต: แสดงข้อผิดพลาดแบบ inline + disable ปุ่มระหว่างยิง API
+สำเร็จ → เก็บ token ใน Session → Redirect ไป Onboarding
+
+2) Onboarding (หลังสมัคร/ล็อกอินครั้งแรก)
+Consent: อ่านยินยอม/นโยบาย → กด Agree
+Profile Form: เพศ/อายุ/ส่วนสูง/น้ำหนัก/แพ้ยา/ยา/ข้อมูลสำคัญ
+Conditions Picker: เลือกโรคที่เป็น (เช่น เบาหวาน/หัวใจ/หอบหืด ฯลฯ)
+Permissions: ขอสิทธิ์ Health Connect / HealthKit (Steps/HR/Sleep/SpO₂/Calories/Glucose ฯลฯ เฉพาะที่เรารองรับและผู้ใช้ยอม)
+Done: สร้าง HomePlan (ผังการ์ดหน้า Home) ตามโปรไฟล์/โรค + เซต Rules ที่เกี่ยวข้อง
+→ เข้า Home
+
+3) Home (ศูนย์กลาง)
+Header: ชื่อผู้ใช้/ทักทาย + แบนเนอร์เน็ต (ถ้าล่ม)
+Quick Tip / For You: การ์ด “เฉพาะคุณ” (tip/เตือนเบา ๆ ตาม rule)
+Feature Cards (grid):
+Wearables (สรุปแค่ 3–4 ค่า—เช่น Steps/HR/Sleep/SpO₂—เฉพาะค่าที่อ่านได้จริง)
+AI Chat (เข้าแชต—ก่อนใช้ครั้งแรกเด้งไปอ่าน Disclaimer)
+Food (บันทึกอาหาร/โภชนาการ—เริ่มจาก mock)
+Fit (เป้าหมายกิจกรรม/ออกกำลัง—เริ่มจาก mock)
+More (เมนูรวม: นัดหมอ, ตั้งค่า, กล่องแจ้งเตือน, ฯลฯ)
+FAB กลาง: ปุ่มกลม (สีหลัก) → Quick Panel (เพิ่มลัด/ลิสต์ฟีเจอร์ที่ใช้บ่อยตามผู้ใช้)
+Bottom Nav: Home / Feed / Settings
+สำคัญ: การ์ดใด ๆ มีแอนิเมชันเบา ๆ (fade/slide 150–250ms) และทุกการ์ดเป็น คอมโพเนนต์แยกไฟล์ เพื่อ “แก้เป็นส่วน ๆ ได้” ไม่กระทบทั้งหน้า
+
+4) Modules (หน้าลึก)
+Wearables (รายละเอียด): กราฟ (เช่น HR line, Steps bar), สรุปรายวัน/สัปดาห์, ปุ่มขอสิทธิ์เพิ่ม, เฉพาะค่าที่อ่านได้จริง
+AI Chat: ห้องแชต (ส่ง prompt + คอนเทกซ์สรุปค่าจาก wearable ที่อนุญาต) + ทวน Disclaimer
+Food / Fit: เริ่มจากหน้าเปล่า + การ์ดเป้าหมาย/คอมโพเนนต์กราฟพื้นฐาน → ขยายภายหลัง
+More: ลิงก์ไป Consult, Inbox, Permissions, Thresholds, Module Manager ฯลฯ
+
+5) Background & Alerts
+Background Poll (ทุก X นาที ปรับได้): อ่านค่าตามสิทธิ์ → ประเมิน Rule Engine →
+ถ้าเข้าเงื่อนไข:
+ยิง In-app Notification (เข้า Inbox)
+(อนาคต) Local push / FCM
+Surface For-You Card (เช่น “HR สูงผิดปกติ—ผ่อนแรง/พักน้ำ 5 นาที”)
+Cooldown: ป้องกันแจ้งถี่ (เช่น HR สูงภายใน 10 นาทีแล้วไม่เตือนซ้ำ)
+Context Aware: ข้ามเตือนถ้าอยู่ในช่วง ออกกำลัง / โหมดงดแจ้ง / Quiet Hours
+
+6) Settings
+ภาษา / ธีม / ลดแอนิเมชัน / เปิด-ปิดเบลอ / เปิด-ปิดโมดูล
+Threshold ส่วนตัว (เช่น HR สูง = 130 หรือ 140)
+เช็คสถานะ Permission
+Logout
+
+7) Feed & Consult
+Feed: ข่าวการแพทย์ (mock → ต่อ API ภายหลัง)
+Consult: นัดหมอ/คำปรึกษา (เริ่ม mock → ค่อยเชื่อม backend)
+สไตล์ (Design System & Interaction)
+Visual DNA
+Minimal + Premium: โปร่ง โล่ง มี “ลมหายใจ” สูง ขาว-ม่วง-คราม เป็นโทนหลัก
+Glassmorphism (เบาเครื่อง):
+ใช้ glassmorphism_ui → blurSigma ต่ำ (8–12), opacity 0.10–0.18, border ขาวจาง 1px
+เงาเบา ๆ (shadowStrength 3–6) + ไฮไลต์มุมบน (gradient ซอฟต์)
+Neumorphic accents: สำหรับปุ่ม icon/แผงเล็ก ๆ เพิ่มฟีล tactile (ไม่ใช้ทั่วทั้งแอป)
+Typography: ชัด, นุ่ม, น้ำหนักชัดเจน (headline/title หนากว่า body)
+Iconography: เส้นบาง, ระบายสีเฉพาะ highlight เท่านั้น (เน้นความสงบ)
+Color tokens (กำหนดใน AppTheme):
+Primary: #7B61FF (light) / #8F7AFF (dark)
+BG: very-light gray (light) / almost-black blue (dark)
+Success/Warning/Danger โทนอ่อน ไม่แทงตา
+Motion
+นุ่มและสั้น: fade/slide 150–250ms, curve easeOut
+Staggered: grid/cards เข้าทีละ 40–60ms
+Low-spec mode: ปิด blur/shadow/particle ทั้งหมด, ลด motion → toggle ได้จาก Settings
+RepaintBoundary ครอบการ์ดที่มีเอฟเฟกต์หนัก เพื่อลด jank
+ใช้ flutter_animate เป็นหลัก → ไม่ต้องควบคุม AnimationController เอง
+Graph/Visual Data
+fl_chart ทำกราฟเส้น/แท่ง (เปิดการ animate นุ่ม ๆ)
+กราฟไม่รก: แสดงเฉพาะแกน/เส้นสำคัญ, มีสรุปค่ายอดนิยม (Max/Avg/Last)
+ถ้าค่าวัด ไม่มีสิทธิ์/ไม่มีฮาร์ดแวร์ → ซ่อน/แสดงเป็น “Locked” แทน (ไม่ปล่อยช่องว่างที่ดูเสีย)
+สถาปัตยกรรม (ปรับง่าย ขยายง่าย)
+แบ่งเป็น Modules: features/<module> มีการ์ด + จอของตัวเอง
+Data flow:
+health_repo ← (package:health) → แปลงเป็น WearableMetrics
+rule_engine ← (metrics + profile) → ตัดสินใจ action
+notifier ส่งผลไป Inbox/Surface Card/Toast
+Personalization:
+HomePlan = ผังการ์ดหน้า Home ต่อคน → สลับลำดับ/เพิ่ม-ลดการ์ด โดยไม่แตะไฟล์ UI หลัก
+rules/conditions/actions = JSON friendly → บันทึก/อัปเดตจากเซิร์ฟเวอร์ได้ในอนาคต
+ความยืดหยุ่น: อยากเพิ่ม “โรค/โมดูล/กราฟ/การ์ด” → เพิ่มไฟล์ในโมดูลนั้น แล้วโยงเข้า HomePlan เท่านั้น
+
+ประสิทธิภาพ:
+
+หลีกเลี่ยง blur ซ้อนหลายชั้น
+ใช้ RepaintBoundary, อย่า rebuild ทั้งหน้าเมื่อ stream เปลี่ยน (เจาะจงเฉพาะการ์ด)
+นโยบาย/ความปลอดภัย
+AI Disclaimer: ต้องเห็นก่อนใช้ AI ครั้งแรก และมีลิงก์เข้าถึงได้เสมอ
+Privacy: Health Connect/HealthKit – ขอเฉพาะสิ่งจำเป็น, อธิบายเหตุผลชัด
+ไม่แทนแพทย์: ข้อความคำแนะนำใช้น้ำเสียง “ให้ข้อมูล/ให้แนวทางทั่วไป”
+การขยายในอนาคต (Roadmap สั้น ๆ)
+เพิ่ม “ภาวะ/โรค” preset (เบาหวาน, ความดัน, OSA ฯลฯ) → แค่เพิ่ม rule + plan
+Quick Panel จริง: สร้าง action sheet สำหรับลัดเข้า “บันทึกน้ำ/อาหาร/ออกกำลัง/โหมดพัก”
+เพิ่ม Exercise mode + Quiet Hours (ลด false positive)
+เชื่อม Doctor Consult กับปฏิทิน/Video call/อัปโหลดผลตรวจ
+Push Notifications (FCM) + Server-side rule (เลือกทำบางกติกาที่ฝั่งเซิร์ฟเวอร์)
+
+สรุปสั้น
+
+แอป Minimal + Glass ที่ “ฉลาดแต่ไม่ยัดเยียด”: โชว์เท่าที่มีสิทธิ์อ่าน, ขยายได้เป็นโมดูล
+Workflow ตรงไปตรงมา: Login → Onboarding → Home (การ์ด) → Modules
+ส่วน “เฉพาะคุณ” ขับด้วย Rule Engine + HomePlan → ปรับหน้าจอตามโรคได้จริง
+โค้ดแยกชัด: UI เป็นการ์ด/จอแต่ละโมดูล, Data/Rules แยกโฟลเดอร์, Theme รวมกลาง
+มี Low-spec mode และแนวทางลด jank ตั้งแต่ต้
+
+
+โครงสร้าง & หน้าที่ไฟล์ (แก้ตรงไหนให้แก้ไฟล์อะไร)
+1) ระดับแอป / ธีม
+
+lib/main.dart
+บูตแอป, โหลดธีม, สร้าง GoRouter, เช็ค token/ภาษา/การลดแอนิเมชัน (ถ้าเปิดไว้)
+แก้เมื่อ: อยากเปลี่ยนจุดเริ่มต้น, สลับธีม light/dark, ผูก provider ทั้งแอป, แทรก global overlay/snackbar
+
+lib/theme/app_theme.dart
+ศูนย์รวม “Design Tokens” (สี, radius, spacing, opacity กระจก)
+นิยาม ThemeData light/dark + helper “Glass” (ใช้ glassmorphism_ui ภายใน)
+แก้เมื่อ: อยากเปลี่ยนโทนสี, ความโค้งมุม, ความใส/เบลอของกระจก, สไตล์ Text/Buttons/Input ให้ทั้งแอป
+ทิป: ถ้ารุ่นเครื่องเก่า—ลด glassOpacity, blurSigma, ปิดเงา (shadowStrength ต่ำ)
+
+2) Core — โครงกระดูกระบบ (API, Session, Models, Rules, Background, Performance)
+2.1 API/Session/Router
+
+core/api/http_client.dart
+HTTP client กลาง: baseUrl, timeout, header ใส่ token อัตโนมัติ
+แก้เมื่อ: เปลี่ยน API base, จัดการ error mapping, middleware logging
+
+core/auth/auth_service.dart
+login/register/logout, refresh token, เก็บ/ลบ token ใน Session
+แก้เมื่อ: รูปแบบ payload เปลี่ยน, เพิ่ม endpoint auth ใหม่, mapping error จาก backend
+
+core/router/app_router.dart
+กำหนดเส้นทางทั้งหมดด้วย go_router: auth, shell, feature screens
+แก้เมื่อ: เพิ่มหน้าใหม่/โมดูลใหม่, ปรับกติกา redirect เมื่อ auth/non-auth, ผูก FAB -> Quick Panel
+
+core/user/session.dart
+ที่เก็บสถานะผู้ใช้ฝั่ง device (token, email, displayName) ด้วย FlutterSecureStorage
+แก้เมื่อ: อยาก cache field เพิ่มเติม, clear state ตอน logout, บริดจ์กับ onboarding
+
+2.2 Data Repos (อ่าน/เขียนข้อมูล)
+core/data/user_repo.dart
+อ่าน/เขียนโปรไฟล์ผู้ใช้ (ชื่อ/เพศ/อายุ/โรค/แพ้ยา/threshold ส่วนตัว), แผนส่วนบุคคล
+แก้เมื่อ: ฟอร์มโปรไฟล์มี field เพิ่ม/ลด, เปลี่ยน schema ฝั่ง backend
+
+core/data/health_repo.dart
+ห่อการเข้าถึง Health (Health Connect/HealthKit ผ่าน package:health), แปลงเป็น metric ids ของเรา
+แก้เมื่อ: จะรองรับ metric ใหม่ (เช่น VO₂max), รูปแบบ aggregation เปลี่ยน, เปลี่ยนช่วงเวลาอ่าน
+
+core/data/feed_repo.dart
+ดึง feed ข่าวการแพทย์ (mock หรือ API ของเรา)
+แก้เมื่อ: เปลี่ยน source ข้อมูล, pagination, filter topics
+
+2.3 Models (ข้อมูลกลางที่แชร์ทั้งแอป)
+core/models/user_profile.dart
+โครงสร้างโปรไฟล์ & เงื่อนไขสุขภาพของผู้ใช้ (เช่น list ของโรคที่มี)
+แก้เมื่อ: เพิ่ม field โปรไฟล์, เก็บค่าขีดจำกัดเฉพาะบุคคล
+
+core/models/wearable_metrics.dart
+สเปก metric ที่รองรับ (steps, heart_rate, sleep, spo2, kcal, glucose ฯลฯ)
+แก้เมื่อ: เพิ่ม/ลบ metric id, ชื่อและหน่วยที่โชว์บน UI
+
+core/models/home_plan.dart
+แผนจัดวางการ์ดบน Home ต่อผู้ใช้/โรค: HomeItem (for_you, wearable, ai, food, fit, more…)
+แก้เมื่อ: อยากเปลี่ยน layout/เรียงลำดับการ์ด ตามโรค/เงื่อนไข
+
+core/models/rule.dart
+DSL ของ “กติกา”: RuleSpec, ConditionNode, ActionSpec, threshold source
+แก้เมื่อ: นิยาม rule ใหม่ (เช่น HR>130 แต่ข้ามถ้าออกกำลัง), เพิ่มชนิด action/condition
+
+core/models/condition.dart
+เงื่อนไขซับซ้อน/นามธรรม เช่น “InQuietHours”, “Tag matches” (ใช้ร่วมกับ RuleSpec)
+แก้เมื่อ: สร้าง condition เฉพาะ (ตัวอย่าง: “กำลังวิ่งอยู่”, “อยู่ outdoor”)
+
+core/models/action.dart
+Action ที่ทำได้ (notify, surface card, log…), payload สำหรับ UI/ระบบแจ้งเตือน
+แก้เมื่อ: เพิ่ม action ใหม่ เช่น “ส่ง webhook”, “สร้าง todo”, “โทรออกฉุกเฉิน”
+
+core/models/notification_item.dart
+โครง message สำหรับ “กล่องแจ้งเตือนในแอป”
+แก้เมื่อ: อยากเพิ่มชนิดการแจ้งเตือน/ป้ายสถานะ
+
+2.4 Rules Engine & Builtins
+
+core/rules/builtin_conditions.dart
+เงื่อนไขสำเร็จรูป (HR สูง, SpO₂ ต่ำ, นอนน้อย, ข้ามถ้ากำลังออกกำลัง ฯลฯ)
+แก้เมื่อ: เพิ่ม condition สำหรับโรค/สถานการณ์ใหม่
+
+core/rules/builtin_actions.dart
+Action สำเร็จรูปที่เรียกง่าย (“แจ้งเตือนภาษาไทย/อังกฤษ”, “ปักการ์ด For You”)
+แก้เมื่อ: ต้องการ action preset ใหม่ (สวย/สั้น/หลายภาษา)
+
+core/rules/rule_engine.dart
+เอ็นจินประเมินกติกา + จัดการ cooldown + ส่ง action ไปยัง notifier/UI
+แก้เมื่อ: อยากเปลี่ยนวิธีสะสม state, ปรับ execution order, เพิ่ม logging
+
+2.5 Alerts / Background / Performance
+core/alerts/notifier.dart
+รวมทางออกการแจ้งเตือน: in-app inbox + snackbar + (เตรียมต่อ FCM)
+แก้เมื่อ: เปลี่ยนสไตล์แจ้งเตือน, เพิ่มช่องทางส่ง (push), บีบข้อความหลายภาษา
+
+core/alerts/inbox_store.dart
+เก็บรายการแจ้งเตือนในแอป, mark read, clear
+แก้เมื่อ: UX กล่องข้อความเปลี่ยน (เช่น pin, archive)
+
+core/perf/frame_guard.dart
+ยูทิลลด jank: schedule/microtask/repaint boundary ช่วยเวลาหน้า heavy
+แก้เมื่อ: กลับมาจูนประสิทธิภาพ, ล้อม block UI ให้วาดทีละส่วน
+
+core/services/background_poll.dart
+Poll ค่าจาก wearable เป็นระยะ + ยิง rule engine + ส่งแจ้งเตือน
+แก้เมื่อ: เปลี่ยนช่วงเวลา, ปรับโหมดประหยัดแบต, เงื่อนไขเครือข่าย
+
+3) Features (หน้าฟีเจอร์แต่ละโมดูล)
+3.1 Auth
+
+features/auth/login_screen.dart / features/auth/register_screen.dart
+ฟอร์ม auth (glass UI), social row mock, แบนเนอร์เน็ตล่ม/เซิร์ฟเวอร์ล้ม
+แก้เมื่อ: เปลี่ยนฟิลด์, เพิ่ม SSO จริง, แก้ flow เมื่อ server down
+
+features/auth/widgets/glass_card.dart
+การ์ดกระจกที่ใช้ซ้ำใน auth (ใช้ glassmorphism_ui + flutter_animate)
+แก้เมื่อ: อยากปรับ “ฟีลกระจก”, ความโค้ง, เงา, อนิเมชันเข้า
+
+features/auth/widgets/social_row.dart
+ปุ่ม Apple/Google/Facebook mock
+แก้เมื่อ: ใส่ SSO จริง/เปลี่ยนลำดับ/สไตล์ปุ่ม
+
+3.2 Home
+
+features/home/home_screen.dart
+โครงหน้าหลัก: header, quick tip, grid, bottom nav, FAB (Quick Panel)
+แก้เมื่อ: เปลี่ยนส่วนหัว (ชื่อ/ทักทาย/รูป), เพิ่ม quick actions, ลิงก์ FAB
+
+features/home/home_layout.dart
+คุม layout สองคอลัมน์/สัดส่วน, รองรับการ์ดหลายขนาด (staggered)
+แก้เมื่อ: อยากจูนสัดส่วนให้ “โปร่งแต่แพง”, สลับตำแหน่งการ์ดแบบไม่แก้ทุกหน้า
+
+features/home/home_items.dart
+สร้างลิสต์การ์ดตาม “แผนส่วนบุคคล” (อ่านจาก HomePlan)
+แก้เมื่อ: เพิ่มการ์ดโมดูลใหม่, เปลี่ยน rule ว่าการ์ดไหนจะขึ้น
+
+3.3 Wearables
+
+features/wearables/health_service.dart
+เรียก package:health, configure(), requestAuthorization(), ดึง metrics วันนี้
+แก้เมื่อ: เพิ่มชนิด metric, เปลี่ยนช่วงอ่าน, ปรับ on-permission flow
+
+features/wearables/wearable_card.dart
+การ์ดสรุปบางค่าบน Home (แสดงเฉพาะค่าที่อ่านได้จริง) + ปุ่มเข้า module
+แก้เมื่อ: ปรับรูปแบบชิป/ไอคอน/แอนิเมชัน, เพิ่มปุ่ม “ดูทั้งหมด”
+
+หน้า “ดูละเอียด” (ค่ารายวัน/กราฟ) — เราเผื่อชื่อไฟล์ได้ เช่น
+features/wearables/screens/wearables_screen.dart (ค่อยเพิ่ม),
+และกราฟ: features/wearables/widgets/heart_line_chart.dart (ถ้าต้องใช้กราฟจริง)
+
+3.4 Personalized
+
+features/personalized/personalized_card.dart
+การ์ด “เฉพาะคุณ” บน Home (ดึงจาก Personalized Engine)
+แก้เมื่อ: เปลี่ยนคอนเทนต์ที่ kickoff จาก rules
+
+features/personalized/personalized_engine.dart
+
+รวม profile + metrics + rules → คืน “รายการการ์ด/เหตุการณ์แนะนำ”
+แก้เมื่อ: “กติกาปรับหน้าจอ” เปลี่ยน, สร้างประสบการณ์เฉพาะโรค
+
+features/personalized/models/*
+daily_tip.dart, personalized_event.dart
+แก้เมื่อ: ปรับข้อความ/หมวด tip/การ map ไปสู่แอคชัน
+
+3.5 AI Chat
+
+features/ai_chat/ai_chat_card.dart
+การ์ดเข้า AI บน Home + เตือนอ่าน disclaimer ก่อน
+แก้เมื่อ: ปรับคำโปรย/สไตล์ปุ่ม, เช็คสิทธิ์เข้า
+
+features/ai_chat/screens/ai_chat_screen.dart
+ห้องแชต AI (เรียก API ของคุณ) + (ออปชัน) แทรกค่าวัดจาก wearable เป็นคอนเทกซ์
+แก้เมื่อ: เปลี่ยน prompt/ระบบความรับผิดชอบ, แทรก metrics/โปรไฟล์
+Disclaimer route เรามีใน router แล้ว (/ai_disclaimer)
+ถ้าอยากบังคับ “เห็นทุกครั้งก่อนใช้” ให้เช็ค flag ใน Session แล้ว redirect
+
+3.6 Food / Fit / More
+
+features/food/*, features/fit/*, features/more/*
+การ์ด + หน้าข้างในของแต่ละโมดูล
+
+แก้เมื่อ: เพิ่มฟีเจอร์ย่อย, ใส่กราฟ/แอนิเมชันเฉพาะ
+
+4) UI (ของใช้ซ้ำ, FEED, SETTINGS, ONBOARDING, NOTIFICATIONS)
+
+ui/widgets/feature_card.dart
+การ์ดฟีเจอร์ generic (title/subtitle/metrics ชุดเล็ก) ใช้ในหลายโมดูล
+แก้เมื่อ: อยากคุมสไตล์การ์ดกลางครั้งเดียว ให้การ์ดทุกตัวไปตาม
+
+ui/widgets/net_state_banner.dart
+แถบบอก “ไม่มีเน็ต / เซิร์ฟเวอร์ล่ม” (อาศัย utils/connectivity.dart)
+แก้เมื่อ: เปลี่ยนดีไซน์/ภาษาข้อความ
+
+ui/widgets/section_header.dart / primary_button.dart / glass_backdrop.dart
+หัวข้อเซกชัน/ปุ่มหลัก/พื้นหลัง glass ละออง—ใช้ซ้ำ
+แก้เมื่อ: ปรับภาษา/ขนาด/สไตล์ทั่วหน้า
+
+ui/feed/feed_screen.dart
+หน้า feed ข่าวการแพทย์
+แก้เมื่อ: เปลี่ยนแหล่งข่าว/เพิ่มการกรอง/ใส่อนิเมชัน list
+
+ui/settings/*
+settings_screen.dart – หน้าตั้งค่ารวม (ภาษา/ธีม/เบลอ/แอนิเมชัน/โมดูล)
+language_picker.dart – สลับภาษา (i18n)
+module_manager_screen.dart – เปิด/ปิดโมดูล
+thresholds_screen.dart – ปรับเกณฑ์ส่วนตัว (เช่น HR สูงแค่ไหนเตือน)
+permissions_screen.dart – สถานะสิทธิ์ Health/Notifications
+แก้เมื่อ: เพิ่มตั้งค่าใหม่, เปลี่ยน UX จัดการโมดูล
+
+ui/consult/consult_screen.dart
+นัดหมอ/บันทึกการปรึกษา (mock ตอนนี้)
+แก้เมื่อ: ต่อจริงกับ backend/ปฏิทิน
+ui/onboarding/*
+consent_screen.dart – ยินยอม/นโยบาย
+profile_form_screen.dart – กรอกข้อมูลผู้ใช้ละเอียด (เพศ/อายุ/แพ้ยา ฯลฯ)
+conditions_picker_screen.dart – เลือกโรคที่เป็นอยู่
+done_screen.dart – เสร็จ onboarding + set plan
+แก้เมื่อ: เปลี่ยนคำถาม, เพิ่ม validations, set “HomePlan” ต่างตามโรค
+
+ui/notifications/inbox_screen.dart
+กล่องแจ้งเตือนในแอป (แสดงผลจาก inbox_store)
+แก้เมื่อ: ปรับรูปแบบ list, ปักหมุด/อ่านแล้ว
+
+5) Utils & Tests & Assets
+
+utils/format.dart
+ฟังก์ชันฟอร์แมตตัวเลข/เวลา (เช่น sec → "6h 30m", bpm → “72 bpm”)
+แก้เมื่อ: รูปแบบข้อความแสดงผล
+utils/connectivity.dart
+stream สถานะเน็ต + helper
+แก้เมื่อ: ต้องเช็คชนิดการเชื่อมต่อ หรือรวมสถานะ server ping
+
+utils/platform.dart
+helper ตรวจ platform/รุ่น Android/iOS เพื่อสลับฟีเจอร์
+แก้เมื่อ: ปรับ fallback สำหรับเครื่องรุ่นเก่า
+
+assets/.keep
+
+ไว้กันโฟลเดอร์ว่าง
+
+test/smoke_test.dart
+
+สmoke test บูตรันแอป
+
+แก้เมื่อ: เพิ่ม widget test เบื้องต้น
+
+จะ “แก้อะไร → ต้องไปที่ไหน”
+
+เปลี่ยนสี/กลาส/เงา/ความโค้ง → theme/app_theme.dart
+
+เพิ่มการ์ดใหม่ใน Home → สร้างไฟล์การ์ดใน features/<module>/<card>.dart + ผูกใน home_items.dart (หรือผ่าน HomePlan)
+
+เพิ่ม metric ใหม่นาฬิกา → models/wearable_metrics.dart (ประกาศ id/หน่วย) + map ใน data/health_repo.dart + แสดงผลที่ wearable_card.dart (และหน้าละเอียด)
+
+ปรับ Rule (แจ้งเตือน/เฉพาะโรค) → rules/builtin_conditions.dart + rules/builtin_actions.dart + rules/rule_engine.dart; กำหนดชุด rule ตาม profile ที่ personalized_engine.dart
+
+แก้ flow หน้าเข้าใช้/redirect หลัง login → router/app_router.dart + เช็ค token ใน main.dart
+
+เพิ่มภาษา → ใช้ flutter_localizations + gen arb (ไฟล์ strings) และอัปเดต settings/language_picker.dart
+
+ลดกินสเปก/กระตุก → ลด blurSigma, glassOpacity, shadowStrength ใน GlassCard/AppTheme; เปิด reduceMotion flag (ทำ prefs เพิ่มได้)
+
+แอนิเมชันทุกหน้า → ใช้ flutter_animate จุดที่ต้องการ (Fade/Move/Scale) โดยโอบด้วย RepaintBoundary เมื่อจำเป็น

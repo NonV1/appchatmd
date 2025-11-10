@@ -1,0 +1,10 @@
+﻿{
+  "@@locale": "en",
+  "app_name": "ChatMD",
+  "login_title": "Welcome back",
+  "register_title": "Create account",
+  "home_title": "Home",
+  "feed_title": "Feed",
+  "consult_title": "Consult",
+  "settings_title": "Settings"
+}

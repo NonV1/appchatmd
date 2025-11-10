@@ -1,66 +1,65 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'ui/auth/login_register_screen.dart';
-import 'ui/wearables/wearables_screen.dart';
 
-void main() async {
+import 'theme/app_theme.dart';
+import 'core/api/http_client.dart';
+import 'core/user/session.dart';
+import 'core/router/app_router.dart';
+import 'core/perf/frame_guard.dart';
+import 'core/services/background_poll.dart';
+import 'core/auth/auth_service.dart';
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  const storage = FlutterSecureStorage();
-  final token = await storage.read(key: 'access_token');
-  runApp(ChatMDApp(initialRoute: token == null ? '/auth' : '/wearables'));
+
+  // 1) ลด jank เฟรมแรกๆ
+  await FrameGuard.I.warmUpShadersSafe(
+    imageCacheMaxSize: 200,
+    imageCacheMaxMemoryBytes: 64 << 20, // ~64MB
+  );
+
+  // 2) โหลด session
+  await Session.I.hydrate();
+
+  // 3) ตั้งค่า HTTP client กลาง
+  const apiBase = String.fromEnvironment(
+    'API_BASE',
+    defaultValue: 'https://api.chatdm.org',
+  );
+  HttpClient.I.init(
+    baseUrl: apiBase,
+    getToken: Session.I.getToken,
+  );
+
+  // 4) พูลพื้นหลัง — ต้อง configure ก่อน
+  BackgroundPoll.I.configure(
+    fetcher: () async => <String, num>{},              // TODO: ฉีด HealthRepo จริง
+    evaluator: (metrics, now, reason) async => BgDecision(),
+    onNotifications: null,                             // TODO: ต่อ inbox/notifier ถ้าพร้อม
+  );
+  await BackgroundPoll.I.init();
+  await BackgroundPoll.I.setEnabled(true, intervalMin: 10);
+
+  // 5) GoRouter
+  final auth = AuthService.I;
+  final router = createAppRouter(auth: auth, session: Session.I);
+
+  runApp(ChatMDApp(routerConfig: router));
 }
 
 class ChatMDApp extends StatelessWidget {
-  const ChatMDApp({super.key, required this.initialRoute});
-  final String initialRoute;
-
-  static const apiBase = String.fromEnvironment(
-    'API_BASE', defaultValue: 'https://api.chatdm.org',
-  );
+  const ChatMDApp({super.key, required this.routerConfig});
+  final RouterConfig<Object> routerConfig;
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'ChatMD',
-      theme: ThemeData(
-        useMaterial3: true,
-        // โทนสว่าง คลีน สไตล์การแพทย์
-        colorSchemeSeed: const Color(0xFF7B61FF),
-        brightness: Brightness.light,
-        scaffoldBackgroundColor: const Color(0xFFF7F8FB),
-        textTheme: const TextTheme(
-          headlineSmall: TextStyle(fontWeight: FontWeight.w700),
-          bodyMedium: TextStyle(height: 1.3),
-        ),
-        cardTheme: CardThemeData(            // 👈 เปลี่ยนตรงนี้
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          elevation: 0,
-          color: const Color(0xFFFFFFFF),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: const Color(0xFFF0F2F8),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        ),
-        filledButtonTheme: FilledButtonThemeData(
-          style: FilledButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          ),
-        ),
-      ),
-      initialRoute: initialRoute,
-      routes: {
-        '/auth': (_) => LoginRegisterScreen(apiBase: apiBase),
-        '/wearables': (_) => const WearablesScreen(),
-      },
+      debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.system,
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      routerConfig: routerConfig,
     );
   }
 }
